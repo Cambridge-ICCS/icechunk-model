@@ -119,12 +119,15 @@ def union (a b : EditChanges) : EditChanges where
   setChunks := a.setChunks.mergeWith b.setChunks Map.extend
   deletedGroups := b.deletedGroups ++ a.deletedGroups
   deletedArrays := b.deletedArrays ++ a.deletedArrays
+  -- TOOD: behaviour on bounds for deleted chunks outside bounds
 
 /-- `a.merge(b)`: changes in `b` take precedence. -/
 def merge (a b : EditChanges) : Except MergeError EditChanges :=
   match mergeChecks a b with
   | some e => .error e
+  -- TODO: check conflicts on nodes, see l.202 at end of merge
   | none => .ok (union a b)
 
-def addGroup (cs : EditChanges) (p : Path) (id : NodeId) (defn : Bytes) : EditChanges :=
-  { cs with newGroups := cs.newGroups.insert p (id, defn) }
+
+-- def addGroup (cs : EditChanges) (p : Path) (id : NodeId) (defn : Bytes) : EditChanges :=
+--   { cs with newGroups := cs.newGroups.insert p (id, defn) }
