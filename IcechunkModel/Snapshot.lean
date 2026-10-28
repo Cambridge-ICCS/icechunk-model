@@ -3,6 +3,6 @@
 structure DimensionShape : Type where
   dimLength : Nat
   numChunks : Nat
-  deriving Repr
+  deriving Repr, DecidableEq
 
 abbrev ArrayShape := List DimensionShape

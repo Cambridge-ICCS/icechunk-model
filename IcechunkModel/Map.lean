@@ -15,13 +15,15 @@ and then checked / rewritten by Dominic Orchard.
 
 structure Map (K V : Type) where
   entries : List (K × V)
-  deriving Repr
+  deriving Repr, DecidableEq
 
 namespace Map
 
 variable {K V : Type} [DecidableEq K]
 
 def empty : Map K V := ⟨[]⟩
+
+def isEmpty (m : Map K V) : Bool := m.entries.isEmpty
 
 instance : EmptyCollection (Map K V) := ⟨empty⟩
 

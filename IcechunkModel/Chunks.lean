@@ -4,6 +4,6 @@
 -- are abstract.
 structure Chunk : Type where
   ChunkId : Nat
-  deriving Repr
+  deriving Repr, DecidableEq
 
 open Chunk
