@@ -1,4 +1,4 @@
-/-- Model of `icechunk-format/src/snapshort.rs` -/
+/-- Partial model of `icechunk-format/src/snapshort.rs` -/
 
 structure DimensionShape : Type where
   dimLength : Nat
