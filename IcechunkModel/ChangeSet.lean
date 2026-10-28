@@ -37,10 +37,14 @@ abbrev Payload := Chunk
 abbrev Bytes := Nat -- placeholder
 abbrev DimensionName := Nat -- placeholder
 
+/-- `None` marks a deleted chunk. -/
+abbrev ChunkTable := Map Coord (Option Payload)
+
 structure ArrayData : Type where
   shape          : ArrayShape
   dimensionNames : List Nat
   userData       : Bytes
+  deriving Repr
 
 structure EditChanges where
   newGroups     : Map Path (NodeId × Bytes) := ∅

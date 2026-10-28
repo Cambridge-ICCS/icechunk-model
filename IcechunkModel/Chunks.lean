@@ -4,5 +4,6 @@
 -- are abstract.
 structure Chunk : Type where
   ChunkId : Nat
+  deriving Repr
 
 open Chunk
