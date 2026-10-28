@@ -1,0 +1,3 @@
+[submodule "icechunk"]
+	path = icechunk
+	url = https://github.com/Cambridge-ICCS/icechunk
