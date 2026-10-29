@@ -21,49 +21,49 @@ def getNode (s : Snapshot) (cs : EditChanges) (p : Path) : Option NodeSnapshot :
   | none =>
     match s.nodes.get? p with
     | none => none
-    | some n => if cs.isDeleted p n.id then none else some (cs.updateExisting n)
+    | some n => cs.updateExistingNode n
 
+/-- `list_nodes`: existing nodes under `p`, plus all new nodes (as in the Rust). -/
+def listNodes (s : Snapshot) (cs : EditChanges) (p : Path) : List NodeSnapshot :=
+  let existing := s.nodes.keys.filterMap fun q =>
+    if p.isPrefixOf q then (s.nodes.get? q).bind cs.updateExistingNode else none
+  existing ++ cs.newNodes
 
-def addGroup (s : Snapshot) (cs : EditChanges) (p : Path) (id : NodeId) (m : Metadata) : EditChanges :=
+def addGroup (s : Snapshot) (cs : EditChanges) (p : Path) (id : NodeId) (m : Meta) : Except OpError EditChanges :=
     if (getNode s cs p).isSome then .error .alreadyExists else .ok (cs.addGroup p id m)
 
 -- TODO: delete_node
 
-def deleteGroup (s : Snapshot) (cs : EditChanges) (p : Path) (id : NodeId) : EditChanges :=
+def addArray (s : Snapshot) (cs : EditChanges) (p : Path) (id : NodeId) (m : ArrayData) : Except OpError EditChanges :=
+    if (getNode s cs p).isSome then .error .alreadyExists else .ok (cs.addArray p id m)
+
+def updateGroup (s : Snapshot) (cs : EditChanges) (p : Path) (m : Meta) : Except OpError EditChanges :=
+    match getNode s cs p with
+    | none => .error .nodeNotFound
+    | some n => if n.nodeType = .group then .ok (cs.updateGroup n.id p m) else .error .notAGroup
+
+def updateArray (s : Snapshot) (cs : EditChanges) (p : Path) (m : Meta) : Except OpError EditChanges :=
+    match getNode s cs p with
+    | none => .error .nodeNotFound
+    | some n => if n.nodeType = .array then .ok (cs.updateArray n.id p m) else .error .notAnArray
+
+def deleteArray (s : Snapshot) (cs : EditChanges) (p : Path) : Except OpError EditChanges :=
+    match getNode s cs p with
+    | none => .ok cs
+    | some n => if n.nodeType = .array then .ok (cs.deleteArray p n.id) else .error .notAnArray
+
+def deleteGroup (s : Snapshot) (cs : EditChanges) (p : Path) : Except OpError EditChanges :=
     match getNode s cs p with
     | none => .ok cs
     | some n =>
-      if n.kind = .group then
-        .ok ((listNodes s cs p).foldl (init := cs) fun acc (q, node) =>
-          match node.kind with
-          | .group => acc.deleteGroup q node.id
-          | .array => acc.deleteArray q node.id)
+      if n.nodeType = .group then
+        .ok (((listNodes s cs p).filter (p.isPrefixOf ·.path)).foldl (init := cs) fun acc node =>
+          match node.nodeType with
+          | .group => acc.deleteGroup node.path node.id
+          | .array => acc.deleteArray node.path node.id)
       else .error .notAGroup
 
-def addArray (s : Snapshot) (cs : EditChanges) (p : Path) (id : NodeId) (m : Metadata) : EditChanges :=
-    if (getNode s cs p).isSome then .error .alreadyExists else .ok (addArray s cs p id m)
-
-def updateGroup (s : Snapshot) (cs : EditChanges) (p : Path) (id : NodeId) (m : Metadata) : EditChanges :=    match getNode s cs p with
-    | none => .error .nodeNotFound
-    | some n => if n.kind = .group then .ok (cs.updateGroup n.id p m) else .error .notAGroup
-
-def updateArray (s : Snapshot) (cs : EditChanges) (p : Path) (id : NodeId) (m : Metadata) : EditChanges :=
+def setChunkRef (s : Snapshot) (cs : EditChanges) (p : Path) (c : Coord) (v : Option Payload) : Except OpError EditChanges :=
     match getNode s cs p with
     | none => .error .nodeNotFound
-    | some n => if n.kind = .array then .ok (cs.updateArray n.id p m) else .error .notAnArray
-
-def deleteArray (s : Snapshot) (cs : EditChanges) (p : Path) (id : NodeId) : EditChanges :=
-    match getNode s cs p with
-    | none => .ok cs
-    | some n => if n.kind = .array then .ok (cs.deleteArray p n.id) else .error .notAnArray
-
-def deleteGroup (s : Snapshot) (cs : EditChanges) (p : Path) (id : NodeId) : EditChanges :=
-    match getNode s cs p with
-    | none => .ok cs
-    | some n =>
-      if n.kind = .group then
-        .ok ((listNodes s cs p).foldl (init := cs) fun acc (q, node) =>
-          match node.kind with
-          | .group => acc.deleteGroup q node.id
-          | .array => acc.deleteArray q node.id)
-      else .error .notAGroup
+    | some n => if n.nodeType = .array then .ok (cs.setChunkRef n.id c v) else .error .notAnArray
