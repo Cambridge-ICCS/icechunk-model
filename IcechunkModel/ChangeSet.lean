@@ -21,21 +21,7 @@ chunk payloads are an opaque `Payload`. Chunk coordinates are never out of bound
 * Node ids are explicit rather than `NodeId::random()`; callers supply fresh ones.
 -/
 
-/-- Path components as a list of strings
-  `[]` is the root `/`
-  `["g", "a"]` means `/g/a`
-   -/
-abbrev Path := List String
-
-/-- Node ids are nat numbers. -/
-
--- Some of these are abstractions for now
-abbrev NodeId := Nat
 abbrev Meta := Nat
-abbrev Coord := Nat
-abbrev Payload := Chunk
-abbrev Bytes := Nat -- placeholder
-abbrev DimensionName := Nat -- placeholder
 
 /-- `None` marks a deleted chunk. -/
 abbrev ChunkTable := Map Coord (Option Payload)

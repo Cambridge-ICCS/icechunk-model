@@ -1,6 +1,6 @@
 import IcechunkModel.ChangeSet
 
-/-- Partial model of `icechunk/src/session.rs` -/
+/-! Partial model of `icechunk/src/session.rs` -/
 
 inductive SessionMode
   | Readonly
@@ -8,7 +8,14 @@ inductive SessionMode
   | Rearrange
   deriving DecidableEq, Repr
 
-def getNode (s : Snapshot) (cs : EditChanges) (p : Path) : Option Node :=
+inductive OpError
+  | alreadyExists
+  | nodeNotFound
+  | notAnArray
+  | notAGroup
+  deriving DecidableEq, Repr
+
+def getNode (s : Snapshot) (cs : EditChanges) (p : Path) : Option NodeSnapshot :=
   match cs.getNewNode p with
   | some n => some n
   | none =>
