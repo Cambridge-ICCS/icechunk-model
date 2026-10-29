@@ -74,6 +74,56 @@ def addGroup (cs : EditChanges) (p : Path) (id : NodeId) (m : Meta) : EditChange
 def addArray (cs : EditChanges) (p : Path) (id : NodeId) (m : ArrayData) : EditChanges :=
   { cs with newArrays := cs.newArrays.insert p (id, m) }
 
+/-- `update_group`: a group created in this session is overwritten in place. -/
+def updateGroup (cs : EditChanges) (id : NodeId) (p : Path) (m : Meta) : EditChanges :=
+  if cs.newGroups.contains p then { cs with newGroups := cs.newGroups.insert p (id, m) }
+  else { cs with updatedGroups := cs.updatedGroups.insert id m }
+
+/-- `update_array` (only the user data is modelled, as `Meta`). -/
+def updateArray (cs : EditChanges) (id : NodeId) (p : Path) (m : Meta) : EditChanges :=
+  match cs.newArrays.get? p with
+  | some (_, d) => { cs with newArrays := cs.newArrays.insert p (id, { d with userData := m }) }
+  | none => { cs with updatedArrays := cs.updatedArrays.insert id m }
+
+def deleteGroup (cs : EditChanges) (p : Path) (id : NodeId) : EditChanges :=
+  let cs := { cs with updatedGroups := cs.updatedGroups.erase id }
+  if cs.newGroups.contains p then { cs with newGroups := cs.newGroups.erase p }
+  else { cs with deletedGroups := (p, id) :: cs.deletedGroups }
+
+def deleteArray (cs : EditChanges) (p : Path) (id : NodeId) : EditChanges :=
+  let cs := { cs with updatedArrays := cs.updatedArrays.erase id, setChunks := cs.setChunks.erase id }
+  if cs.newArrays.contains p then { cs with newArrays := cs.newArrays.erase p }
+  else { cs with deletedArrays := (p, id) :: cs.deletedArrays }
+
+def isDeleted (cs : EditChanges) (p : Path) (id : NodeId) : Bool :=
+  cs.deletedGroups.contains (p, id) || cs.deletedArrays.contains (p, id)
+
+def setChunkRef (cs : EditChanges) (id : NodeId) (c : Coord) (v : Option Payload) : EditChanges :=
+  let table := (cs.setChunks.get? id).getD ∅
+  { cs with
+    setChunks := cs.setChunks.insert id (table.insert c v)
+    numChunks := if table.contains c then cs.numChunks else cs.numChunks + 1 }
+
+def getNewNode (cs : EditChanges) (p : Path) : Option NodeSnapshot :=
+  match cs.newArrays.get? p, cs.newGroups.get? p with
+  | some (id, d), _ => some ⟨id, p, d.userData, .array d.shape d.dimensionNames⟩
+  | none, some (id, m) => some ⟨id, p, m, .group⟩
+  | none, none => none
+
+/-- Nodes created in this session and not since deleted. -/
+def newNodes (cs : EditChanges) : List NodeSnapshot :=
+  (cs.newArrays.keys ++ cs.newGroups.keys).filterMap fun p =>
+    (cs.getNewNode p).filter fun n => !cs.isDeleted p n.id
+
+/-- `update_existing_node` (moves omitted): `none` if deleted. -/
+def updateExistingNode (cs : EditChanges) (n : NodeSnapshot) : Option NodeSnapshot :=
+  if cs.isDeleted n.path n.id then none
+  else
+    let updated := match n.nodeData with
+      | .group => cs.updatedGroups.get? n.id
+      | .array .. => cs.updatedArrays.get? n.id
+    some { n with userData := updated.getD n.userData }
+
 -- An array deleted in `a` was created, updated, or had chunks written in `b`.
 def deletedArrayModified (a b : EditChanges) : Bool :=
   a.deletedArrays.any fun (p, n) =>
