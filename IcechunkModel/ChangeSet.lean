@@ -82,6 +82,12 @@ def checkForConflicts {K V : Type} [DecidableEq K] [DecidableEq V] (a : Map K V)
     | _, _ => false
 
 /-- ## Some helpers for the model of `merge` and its checks -/
+def addGroup (cs : EditChanges) (p : Path) (id : NodeId) (m : Meta) : EditChanges :=
+  { cs with newGroups := cs.newGroups.insert p (id, m) }
+
+def addArray (cs : EditChanges) (p : Path) (id : NodeId) (m : ArrayData) : EditChanges :=
+  { cs with newArrays := cs.newArrays.insert p (id, m) }
+
 -- An array deleted in `a` was created, updated, or had chunks written in `b`.
 def deletedArrayModified (a b : EditChanges) : Bool :=
   a.deletedArrays.any fun (p, n) =>
