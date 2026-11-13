@@ -11,6 +11,20 @@ these to the practical implementation via tests.
 - `IcechunkModel/` contains the formal Lean 4 model.
 - `tests/` contains tests that apply the formal model to the practical implementation.
 
+## Running the tests
+
+The tests are `#guard` checks, which Lean evaluates when the file is compiled.
+Build the library, then compile a test file against it:
+
+```sh
+lake build
+lake env lean tests/ModelSearch.lean
+```
+
+No output and a zero exit code means all tests passed. A failing `#guard`
+reports an error with its line number and a non-zero exit code. In VS Code,
+opening the test file also evaluates the checks and highlights any failures.
+
 ## Enumerating client programs
 
 [IcechunkModel/ModelSearch.lean](IcechunkModel/ModelSearch.lean) enumerates free-monad programs up to an operation
