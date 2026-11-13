@@ -10,3 +10,38 @@ these to the practical implementation via tests.
 - `icechunk/` is a submodule pointing to a fork of IceChunk
 - `IcechunkModel/` contains the formal Lean 4 model.
 - `tests/` contains tests that apply the formal model to the practical implementation.
+
+## Enumerating client programs
+
+[IcechunkModel/ModelSearch.lean](IcechunkModel/ModelSearch.lean) enumerates free-monad programs up to an operation
+count bound. Supply a finite alphabet at each depth; `opsAt` provides a small
+default alphabet over a path:
+
+```lean
+import IcechunkModel.ModelSearch
+
+open ModelSearch
+
+def paths : List Path := [["g"], ["g", "a"]]
+def arrayData : ArrayData := { shape := [], dimensionNames := [], userData := 5 }
+def choices (idBase : NodeId) (depth : Nat) : List (Op Unit) :=
+  paths.flatMap fun p => opsAt p (idBase + depth) arrayData
+
+-- Includes the empty program and all one- and two-operation programs.
+def forkA := programs (choices 100) 2
+def forkB := programs (choices 200) 2
+
+def search (s : Snapshot) (cs : EditChanges) :=
+  forkA.flatMap fun a => forkB.map fun b =>
+    (runForks s cs a b, run s cs (do a; b), run s cs (do b; a))
+```
+
+`runForks` starts both programs from the same state and retains both success and
+error results. Successful fork change sets can be combined with `a.merge b`;
+sequential execution instead uses ordinary monadic composition, as above.
+Choose fresh, disjoint id ranges large enough for the depth bound and avoid ids
+in the initial state. Enumeration is exponential in the bound.
+
+The free monad adds little complexity here because every `Op` returns `Unit`.
+Operations returning other types would need finite result domains to enumerate
+result-dependent continuations exhaustively.
