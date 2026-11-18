@@ -11,12 +11,9 @@ these to the practical implementation via tests.
 - `IcechunkModel/` contains the formal Lean 4 model of the implementation: one file per
   modelled Rust module (`Snapshot`, `ChangeSet`, `Session`, ...).
 - `Client/` models client programs run against the model, as a free monad over session
-  operations (`Prog`, `Op`, `run`), and enumerates them for small-scope search (`Search`).
+  operations (`Prog`, `Op`, `run`), and enumerates them for small-scope search (`Search`) (does not depend on `IcechunkModel`).
 - `Properties/` contains specifications of the model, stated in terms of client programs.
 - `tests/` contains tests that apply the formal model to the practical implementation.
-
-Each directory is a separate Lean library. Dependencies go one way only:
-`IcechunkModel` ← `Client` ← `Properties`, so the model never depends on the client harness.
 
 ## Running the tests
 
