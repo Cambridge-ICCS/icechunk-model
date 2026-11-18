@@ -1,4 +1,4 @@
-import IcechunkModel.ClientSearch
+import Client.Search
 
 open ClientSearch
 

@@ -1,0 +1,22 @@
+name = "IcechunkModel"
+version = "0.1.0"
+defaultTargets = ["IcechunkModel", "Client", "Properties"]
+testDriver = "Tests"
+
+# The model of the Icechunk implementation (mirrors `icechunk/src`).
+[[lean_lib]]
+name = "IcechunkModel"
+
+# Client programs over the model, and their enumeration.
+[[lean_lib]]
+name = "Client"
+
+# Specifications of the model.
+[[lean_lib]]
+name = "Properties"
+
+# `#guard` tests, run by `lake test`.
+[[lean_lib]]
+name = "Tests"
+srcDir = "tests"
+roots = ["ClientSearch"]

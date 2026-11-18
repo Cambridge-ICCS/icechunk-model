@@ -8,33 +8,39 @@ these to the practical implementation via tests.
 ## Overview
 
 - `icechunk/` is a submodule pointing to a fork of IceChunk
-- `IcechunkModel/` contains the formal Lean 4 model.
+- `IcechunkModel/` contains the formal Lean 4 model of the implementation: one file per
+  modelled Rust module (`Snapshot`, `ChangeSet`, `Session`, ...).
+- `Client/` models client programs run against the model, as a free monad over session
+  operations (`Prog`, `Op`, `run`), and enumerates them for small-scope search (`Search`).
+- `Properties/` contains specifications of the model, stated in terms of client programs.
 - `tests/` contains tests that apply the formal model to the practical implementation.
+
+Each directory is a separate Lean library. Dependencies go one way only:
+`IcechunkModel` ← `Client` ← `Properties`, so the model never depends on the client harness.
 
 ## Running the tests
 
 The tests are `#guard` checks, which Lean evaluates when the file is compiled.
-Build the library, then compile a test file against it:
+They form the `Tests` library, which is the package's test driver:
 
 ```sh
-lake build
-lake env lean tests/ModelSearch.lean
+lake test
 ```
 
-No output and a zero exit code means all tests passed. A failing `#guard`
-reports an error with its line number and a non-zero exit code. In VS Code,
-opening the test file also evaluates the checks and highlights any failures.
+A zero exit code means all tests passed. A failing `#guard` reports an error with its
+line number and a non-zero exit code. In VS Code, opening the test file also evaluates the
+checks and highlights any failures.
 
 ## Enumerating client programs
 
-[IcechunkModel/ModelSearch.lean](IcechunkModel/ModelSearch.lean) enumerates free-monad programs up to an operation
+[Client/Search.lean](Client/Search.lean) enumerates free-monad programs up to an operation
 count bound. Supply a finite alphabet at each depth; `opsAt` provides a small
 default alphabet over a path:
 
 ```lean
-import IcechunkModel.ModelSearch
+import Client.Search
 
-open ModelSearch
+open ClientSearch
 
 def paths : List Path := [["g"], ["g", "a"]]
 def arrayData : ArrayData := { shape := [], dimensionNames := [], userData := 5 }

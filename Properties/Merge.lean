@@ -1,4 +1,4 @@
-import IcechunkModel.ZarrClient
+import Client.Op
 
 /-- Two change sets on top of `s` give the same view of every node. -/
 def ViewEq (s : Snapshot) (c c' : EditChanges) : Prop :=

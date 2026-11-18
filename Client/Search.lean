@@ -1,4 +1,4 @@
-import IcechunkModel.ZarrClient
+import Client.Op
 
 /-!
 # Enumerating client programs
