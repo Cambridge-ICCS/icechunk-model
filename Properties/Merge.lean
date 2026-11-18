@@ -11,7 +11,9 @@ def ViewEq (s : Snapshot) (c c' : EditChanges) : Prop :=
   ∀ p, getNode s c p = getNode s c' p ∧
     ∀ coord, getChunkRef s c p coord = getChunkRef s c' p coord
 
-/-- Merging fork `a` then `b` looks like running `progA` then `progB` in one session. -/
-def MergeIsSerial (s : Snapshot) (progA progB : Prog Op Unit) : Prop :=
+/-- Merging forks `a` and `b` looks like running `progA` and `progB` in *some* order in one
+session: the forks are serializable. -/
+def MergeIsSerializable (s : Snapshot) (progA progB : Prog Op Unit) : Prop :=
   ∀ a b c, run s {} progA = .ok a → run s {} progB = .ok b → a.merge b = .ok c →
-    ∃ c', run s {} (do progA; progB) = .ok c' ∧ ViewEq s c c'
+    ∃ c', (run s {} (do progA; progB) = .ok c' ∨ run s {} (do progB; progA) = .ok c') ∧
+      ViewEq s c c'
