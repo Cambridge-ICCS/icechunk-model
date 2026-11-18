@@ -104,6 +104,11 @@ def setChunkRef (cs : EditChanges) (id : NodeId) (c : Coord) (v : Option Payload
     setChunks := cs.setChunks.insert id (table.insert c v)
     numChunks := if table.contains c then cs.numChunks else cs.numChunks + 1 }
 
+/-- `get_chunk_ref`: the chunk as recorded in this change set. `none`: not touched in this
+session; `some none`: deleted in this session. -/
+def getChunkRef (cs : EditChanges) (id : NodeId) (c : Coord) : Option (Option Payload) :=
+  (cs.setChunks.get? id).bind (·.get? c)
+
 def getNewNode (cs : EditChanges) (p : Path) : Option NodeSnapshot :=
   match cs.newArrays.get? p, cs.newGroups.get? p with
   | some (id, d), _ => some ⟨id, p, d.userData, .array d.shape d.dimensionNames⟩

@@ -67,3 +67,19 @@ def setChunkRef (s : Snapshot) (cs : EditChanges) (p : Path) (c : Coord) (v : Op
     match getNode s cs p with
     | none => .error .nodeNotFound
     | some n => if n.nodeType = .array then .ok (cs.setChunkRef n.id c v) else .error .notAnArray
+
+/-- `get_chunk_ref`: chunks written in this session take precedence.
+ Otherwise the Rust code reads the snapshot's manifests (`get_old_chunk`);
+  manifests are not yet modelled, so the base snapshot has no chunks.
+  The `valid_chunk_coord` bounds check is omitted. -/
+def getChunkRef (s : Snapshot) (cs : EditChanges) (p : Path) (c : Coord) :
+    Except OpError (Option Payload) :=
+  match getNode s cs p with
+  | none => .error .nodeNotFound
+  | some n =>
+    match n.nodeData with
+    | .group => .error .notAnArray
+    | .array .. =>
+      match cs.getChunkRef n.id c with
+      | some res => .ok res
+      | none => .ok none -- `get_old_chunk`
