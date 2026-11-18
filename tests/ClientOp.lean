@@ -35,8 +35,11 @@ private def increment (p : Path) : Prog Op Unit := do
   | .ok (some ⟨2⟩, _) => true | _ => false
 
 /-! Lost update: two forks that each increment `/a` read the same starting value, so merging
-them gives 1, whereas running them one after the other gives 2. Recorded here as current
-behaviour of the model, not as a judgement on whether `merge` should reject it. -/
+them gives 1, whereas running them one after the other gives 2.
+
+Serializability needs a restriction on reads: `merge` checks only what forks wrote, so forks
+that read data the other fork writes (here, a lost update) can break it. This is expected,
+not a bug; the bugs are counterexamples where the forks only *write*. -/
 
 #guard match run base {} (increment ["a"]), run base {} (increment ["a"]) with
   | .ok a, .ok b =>
