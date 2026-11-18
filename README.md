@@ -1,17 +1,14 @@
 # A formal, mechanised model of IceChunk
 
-The following repo provides a model of the core IceChunk 
-concepts, written in Lean 4, providing a formal framework
-for reasoning about IceChunk concepts, and then applying
-these to the practical implementation via tests.
+The following repo provides a work-in-progress formal model of the core [IceChunk](https://icechunk.io/en/stable/)  concepts, written in Lean 4, providing a framework for reasoning about IceChunk concepts, and then validating these against the practical implementation via tests.
 
 ## Overview
 
 - `icechunk/` is a submodule pointing to a fork of IceChunk
-- `IcechunkModel/` contains the formal Lean 4 model of the implementation: one file per
-  modelled Rust module (`Snapshot`, `ChangeSet`, `Session`, ...).
-- `Client/` models client programs run against the model, as a free monad over session
-  operations (`Prog`, `Op`, `run`), and enumerates them for small-scope search (`Search`) (does not depend on `IcechunkModel`).
+- `IcechunkModel/` contains the formal Lean 4 model of the implementation with one file per
+  corresponding Rust module that is modelled (`Snapshot`, `ChangeSet`, `Session`, ...).
+- `Client/` models client programs which are run against the model, as a free monad over session
+  operations (`Prog`, `Op`, `run`), where `Client/Search.lean` enumerates them for small-scope search; The client model does not depend on `IcechunkModel`.
 - `Properties/` contains specifications of the model, stated in terms of client programs.
 - `tests/` contains tests that apply the formal model to the practical implementation.
 
@@ -59,6 +56,8 @@ sequential execution instead uses ordinary monadic composition, as above.
 Choose fresh, disjoint id ranges large enough for the depth bound and avoid ids
 in the initial state. Enumeration is exponential in the bound.
 
-The free monad adds little complexity here because every `Op` returns `Unit`.
-Operations returning other types would need finite result domains to enumerate
-result-dependent continuations exhaustively.
+Writes return `Unit`, but reads (`getChunkRef`) return what they read, so later
+operations can depend on the result (e.g. read-modify-write); `runResult` returns a
+program's result alongside its change set. `programs` currently enumerates words over
+`Op Unit` only, so it does not generate reads: enumerating result-dependent continuations
+exhaustively would need finite result domains.
