@@ -20,6 +20,8 @@ private def operationIds : Prog Op Unit → List NodeId
     | .addGroup _ id _ | .addArray _ id _ => id :: operationIds (k ())
     | .updateGroup .. | .updateArray .. | .deleteGroup .. | .deleteArray .. |
         .setChunk .. => operationIds (k ())
+    -- A read's continuation depends on its result; follow the branch where nothing was read.
+    | .getChunkRef .. => operationIds (k none)
 
 #guard (programs (fun depth =>
     [.addGroup ["g"] (100 + depth) 5, .addGroup ["h"] (200 + depth) 5]) 2).map
