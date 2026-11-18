@@ -19,4 +19,4 @@ name = "Properties"
 [[lean_lib]]
 name = "Tests"
 srcDir = "tests"
-roots = ["ClientSearch"]
+roots = ["ClientSearch", "Session"]
