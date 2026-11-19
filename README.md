@@ -8,8 +8,10 @@ The following repo provides a work-in-progress formal model of the core [IceChun
 - `IcechunkModel/` contains the formal Lean 4 model of the implementation with one file per
   corresponding Rust module that is modelled (`Snapshot`, `ChangeSet`, `Session`, ...).
 - `Client/` models client programs which are run against the model, as a free monad over session
-  operations (`Prog`, `Op`, `run`), where `Client/Search.lean` enumerates them for small-scope search; The client model does not depend on `IcechunkModel`.
-- `Properties/` contains specifications of the model, stated in terms of client programs.
+  operations (`Prog`, `Op`, `run`), where `Client/Search.lean` enumerates them for small-scope search. The client depends on `IcechunkModel` (only the free monad `Client/Prog.lean` is independent of it), but the model never depends on the client.
+- `Properties/` contains specifications of the model, stated in terms of client programs
+  (`Merge.lean`), kernel-checked counterexamples to them (`Counterexamples.lean`), and
+  helpers for running concrete programs in such proofs (`Runs.lean`).
 - `tests/` contains tests that apply the formal model to the practical implementation.
 
 ## Running the tests
